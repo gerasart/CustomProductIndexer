@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="catalog_product_index_name" resource="default" engine="innodb"
+           comment="Sample Entity">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="int" name="store_id" unsigned="true" nullable="false" identity="false"
+                default="0" comment="Store ID"/>
+        <column xsi:type="int" name="attribute_id" unsigned="true" nullable="false" identity="false"
+                default="0" comment="Attribute ID"/>
+        <column xsi:type="int" name="value_id" unsigned="true" nullable="false" identity="false"
+                default="0" comment="Value ID"/>
+        <column xsi:type="varchar" name="value" length="255" nullable="true" comment="Value"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+    </table>
+</schema>
