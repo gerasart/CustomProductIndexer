@@ -22,23 +22,4 @@ class NameProduct extends AbstractIndexer
         $this->getIndexBuilder()->reindexByProductIds([$id]);
 
     }
-
-
-    //    /**
-//     * @param array $ids
-//     * @return $this
-//     */
-//    protected function executeAction(array $ids)
-//    {
-////        $connection = $this->getConnection();
-//        $ids = array_unique($ids);
-//        $indexer = $this->indexerRegistry->get(static::INDEXER_ID);
-//        $this->logger->debug('$indexer execute', [$indexer]);
-//
-////        if ($indexer->isScheduled()) {
-////
-////        }
-//
-//        return $this;
-//    }
 }

@@ -9,7 +9,7 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class IndexBuilder
 {
-    const TABLE_KEY = 'entity_id';
+    const SOURCE_TABLE = 'catalog_product_entity_varchar';
     const INDEXER_ID = 'catalog_product_index_name';
     /**
      * @var ResourceConnection
@@ -58,7 +58,6 @@ class IndexBuilder
     public function reindexByProductIds(array $ids)
     {
         $this->doReindex($ids);
-
     }
 
     /**
@@ -66,7 +65,10 @@ class IndexBuilder
      */
     private function doReindex(array $ids)
     {
-
+        $stores = $this->storeManager->getStores();
+        foreach ($stores as $store) {
+            $this->saveIndex($ids, $store);
+        }
     }
 
     /**
@@ -75,5 +77,14 @@ class IndexBuilder
     private function getIndexTable()
     {
         return $this->resource->getTableName(self::INDEXER_ID);
+    }
+
+    /**
+     * @param $ids
+     * @param $store_id
+     */
+    public function saveIndex($ids, $store_id)
+    {
+
     }
 }
