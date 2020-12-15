@@ -7,27 +7,18 @@
 namespace CustomProductIndexer\Product\Model\Indexer\Product;
 
 use Magento\Framework\Indexer\ActionInterface as IndexerActionInterface;
-use Magento\Framework\Indexer\IndexerRegistry;
 use Magento\Framework\Mview\ActionInterface as MviewActionInterface;
 
 /**
  * Price indexer
  */
-class AbstractIndexer implements IndexerActionInterface, MviewActionInterface
+abstract class AbstractIndexer implements IndexerActionInterface, MviewActionInterface
 {
-    /**
-     * Url persist
-     *
-     * @var \Magento\UrlRewrite\Model\UrlPersistInterface
-     */
-    private $urlPersist;
 
     /**
-     * Store manager
-     *
-     * @var \Magento\Store\Model\StoreManagerInterface
+     * @var IndexBuilder
      */
-    private $storeManager;
+    private $indexBuilder;
 
     /**
      * Logger
@@ -36,16 +27,12 @@ class AbstractIndexer implements IndexerActionInterface, MviewActionInterface
      */
     private $logger;
 
-    /**
-     * @var IndexerRegistry
-     */
-    protected $indexerRegistry;
 
     public function __construct(
-        IndexerRegistry $indexerRegistry,
+        IndexBuilder $indexBuilder,
         \Psr\Log\LoggerInterface $logger
     ) {
-        $this->indexerRegistry = $indexerRegistry;
+        $this->indexBuilder = $indexBuilder;
         $this->logger = $logger;
         $this->logger->debug('construct', ['name __construct']);
     }
@@ -53,41 +40,53 @@ class AbstractIndexer implements IndexerActionInterface, MviewActionInterface
     public function executeFull()
     {
         $this->logger->debug('executeFull', []);
-        $this->execute([]);
     }
 
     public function executeList(array $ids)
     {
         $this->logger->debug('executeList', $ids);
-        $this->execute($ids);
+        if ($ids) {
+            $this->doExecuteList($ids);
+        }
     }
 
     public function executeRow($id)
     {
         $this->logger->debug('executeRow', [$id]);
-        $this->execute([$id]);
+
+        if ($id) {
+            $this->doExecuteRow($id);
+        }
     }
 
     public function execute($ids)
     {
         $this->logger->debug('execute', $ids);
+        $this->executeList($ids);
     }
 
-//    /**
-//     * @param array $ids
-//     * @return $this
-//     */
-//    protected function executeAction(array $ids)
-//    {
-////        $connection = $this->getConnection();
-//        $ids = array_unique($ids);
-//        $indexer = $this->indexerRegistry->get(static::INDEXER_ID);
-//        $this->logger->debug('$indexer execute', [$indexer]);
-//
-////        if ($indexer->isScheduled()) {
-////
-////        }
-//
-//        return $this;
-//    }
+    /**
+     * @return IndexBuilder
+     */
+    protected function getIndexBuilder()
+    {
+        return $this->indexBuilder;
+    }
+
+    /**
+     * Execute partial indexation by ID list. Template method
+     *
+     * @param int[] $ids
+     * @return void
+     */
+    abstract protected function doExecuteList($ids);
+
+    /**
+     * Execute partial indexation by ID. Template method
+     *
+     * @param int $id
+     * @return void
+     */
+    abstract protected function doExecuteRow($id);
+
 }
