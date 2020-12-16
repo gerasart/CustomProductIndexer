@@ -2,6 +2,9 @@
 
 namespace CustomProductIndexer\Product\Model\Indexer\Product;
 
+use Magento\Catalog\Model\Product;
+use Magento\Eav\Api\AttributeRepositoryInterface;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\App\State;
 use Magento\Framework\Event\ManagerInterface as EventManager;
@@ -9,8 +12,15 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class IndexBuilder
 {
-    const SOURCE_TABLE = 'catalog_product_entity_varchar';
     const INDEXER_ID = 'catalog_product_index_name';
+
+    /**
+     * Logger
+     *
+     * @var \Psr\Log\LoggerInterface
+     */
+    private $logger;
+
     /**
      * @var ResourceConnection
      */
@@ -35,9 +45,13 @@ class IndexBuilder
         ResourceConnection $resource,
         StoreManagerInterface $storeManager,
         State $appState,
+        \Psr\Log\LoggerInterface $logger,
+        AttributeRepositoryInterface $attributeRepository,
         EventManager $eventManager
     ) {
+        $this->attributeRepository = $attributeRepository;
         $this->resource = $resource;
+        $this->logger = $logger;
         $this->storeManager = $storeManager;
         $this->appState = $appState;
         $this->eventManager = $eventManager;
@@ -65,10 +79,8 @@ class IndexBuilder
      */
     private function doReindex(array $ids)
     {
-        $stores = $this->storeManager->getStores();
-        foreach ($stores as $store) {
-            $this->saveIndex($ids, $store);
-        }
+        $storeId = $this->storeManager->getStore()->getStoreId();
+        $this->saveIndex($ids, $storeId);
     }
 
     /**
@@ -81,10 +93,34 @@ class IndexBuilder
 
     /**
      * @param $ids
-     * @param $store_id
+     * @param $storeId
      */
-    public function saveIndex($ids, $store_id)
+    public function saveIndex($ids, $storeId)
     {
+        $objectManager = ObjectManager::getInstance();
+        $data = [];
+        foreach ($ids as $id) {
+            $product = $objectManager
+                ->create('\Magento\Catalog\Model\ProductRepository')
+                ->getById($id);
+            $data[] = [
+                'value' => $product->getName(),
+                'product_id' => $product->getId(),
+                'store_id' => $storeId,
+                'attribute_id' => $this->getAttributeId('name')
+            ];
 
+            $this->logger->debug('saveIndex data', $data);
+        }
+
+        if (!empty($data)) {
+            $this->resource->getConnection()->insertOnDuplicate($this->getIndexTable(), $data, ['value']);
+        }
+    }
+
+    public function getAttributeId($code)
+    {
+        $attribute = $this->attributeRepository->get(Product::ENTITY, $code);
+        return $attribute->getAttributeId();
     }
 }

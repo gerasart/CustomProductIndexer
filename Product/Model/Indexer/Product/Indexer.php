@@ -12,7 +12,7 @@ use Magento\Framework\Mview\ActionInterface as MviewActionInterface;
 /**
  * Price indexer
  */
-abstract class AbstractIndexer implements IndexerActionInterface, MviewActionInterface
+class Indexer implements IndexerActionInterface, MviewActionInterface
 {
 
     /**
@@ -27,11 +27,11 @@ abstract class AbstractIndexer implements IndexerActionInterface, MviewActionInt
      */
     private $logger;
 
-
     public function __construct(
         IndexBuilder $indexBuilder,
         \Psr\Log\LoggerInterface $logger
-    ) {
+    )
+    {
         $this->indexBuilder = $indexBuilder;
         $this->logger = $logger;
         $this->logger->debug('construct', ['name __construct']);
@@ -40,6 +40,7 @@ abstract class AbstractIndexer implements IndexerActionInterface, MviewActionInt
     public function executeFull()
     {
         $this->logger->debug('executeFull', []);
+        $this->indexBuilder->reindexFull();
     }
 
     public function executeList(array $ids)
@@ -65,28 +66,15 @@ abstract class AbstractIndexer implements IndexerActionInterface, MviewActionInt
         $this->executeList($ids);
     }
 
-    /**
-     * @return IndexBuilder
-     */
-    protected function getIndexBuilder()
+
+    protected function doExecuteList($ids)
     {
-        return $this->indexBuilder;
+        $this->indexBuilder->reindexByProductIds($ids);
+
     }
 
-    /**
-     * Execute partial indexation by ID list. Template method
-     *
-     * @param int[] $ids
-     * @return void
-     */
-    abstract protected function doExecuteList($ids);
-
-    /**
-     * Execute partial indexation by ID. Template method
-     *
-     * @param int $id
-     * @return void
-     */
-    abstract protected function doExecuteRow($id);
-
+    protected function doExecuteRow($id)
+    {
+        $this->indexBuilder->reindexByProductIds([$id]);
+    }
 }
